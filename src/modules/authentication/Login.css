@@ -1,0 +1,47 @@
+
+.login-form {
+  max-width: 480px;
+}
+
+.login-grid {
+  grid-template-columns: 1fr;
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 65px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #285b3e;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.password-toggle:hover {
+  color: #173c28;
+}
+
+.login-form .form-heading {
+  margin-bottom: 35px;
+}
+
+.login-form .register-button {
+  margin-top: 12px;
+}
+
+.login-form .login-text {
+  margin-top: 25px;
+}

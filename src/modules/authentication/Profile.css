@@ -1,0 +1,164 @@
+
+.profile-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 20px;
+  background: #f7f7f0;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 45px 55px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(20, 55, 35, 0.09);
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.profile-avatar {
+  width: 85px;
+  height: 85px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #285b3e;
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.profile-header h1 {
+  color: #1d422d;
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  margin: 0 0 8px;
+}
+
+.profile-header p {
+  color: #858585;
+  font-size: 14px;
+  margin: 0;
+}
+
+.profile-field {
+  margin-bottom: 22px;
+}
+
+.profile-field label {
+  display: block;
+  margin-bottom: 9px;
+  color: #285b3e;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profile-field p,
+.profile-field input {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 12px 15px;
+  border: 1px solid #e5e8e2;
+  border-radius: 9px;
+  background: #fafbf8;
+  color: #344238;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.profile-field input {
+  background: #fff;
+  outline: none;
+}
+
+.profile-field input:focus {
+  border-color: #285b3e;
+}
+
+.profile-field .role-badge {
+  width: fit-content;
+  min-height: auto;
+  background: #eaf2eb;
+  color: #285b3e;
+  font-weight: 700;
+  padding: 9px 18px;
+}
+
+.profile-card button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  border-radius: 9px;
+  background: #285b3e;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.profile-card button:hover {
+  background: #1d422d;
+}
+
+.profile-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-card .logout-button {
+  margin-top: 15px;
+  background: #f5eae6;
+  color: #994b3d;
+}
+
+.profile-card .logout-button:hover {
+  background: #ead8d1;
+}
+
+.success-message,
+.error-message {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 25px 15px;
+  }
+
+  .profile-card {
+    padding: 30px 22px;
+  }
+
+  .profile-header h1 {
+    font-size: 26px;
+  }
+}
+.profile-field:has(.role-badge) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-field:has(.role-badge) label {
+  text-align: center;
+}

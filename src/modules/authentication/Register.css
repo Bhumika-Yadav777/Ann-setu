@@ -1,0 +1,403 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  font-family: 'DM Sans', sans-serif;
+  background: #faf9f4;
+}
+
+/* LEFT PANEL */
+
+.welcome-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 45px 55px;
+  color: white;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(17, 57, 37, 0.84), rgba(17, 57, 37, 0.94)),
+    url('https://images.unsplash.com/photo-1547592180-85f173990554?w=1200')
+    center/cover;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.brand-icon {
+  font-size: 35px;
+}
+
+.welcome-content {
+  max-width: 510px;
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-tag,
+.form-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.welcome-tag {
+  color: #c8d9a9;
+}
+
+.welcome-content h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(38px, 4vw, 58px);
+  line-height: 1.2;
+  margin: 22px 0;
+}
+
+.welcome-content h1 span {
+  color: #c8d9a9;
+}
+
+.welcome-content p {
+  color: #e0e9df;
+  font-size: 15px;
+  line-height: 1.9;
+  max-width: 420px;
+}
+
+.welcome-stats {
+  display: flex;
+  gap: 35px;
+  margin-top: 45px;
+  flex-wrap: wrap;
+}
+
+.welcome-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.welcome-stats strong {
+  color: #d4e3bd;
+  font-size: 16px;
+}
+
+.welcome-stats small {
+  color: #d1ddd2;
+  font-size: 12px;
+}
+
+.welcome-footer {
+  color: #d1ddd2;
+  font-size: 13px;
+}
+
+/* RIGHT PANEL */
+
+.form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 45px 35px;
+}
+
+.register-form {
+  width: 100%;
+  max-width: 570px;
+}
+
+.form-heading {
+  margin-bottom: 30px;
+}
+
+.form-tag {
+  color: #62834e;
+}
+
+.form-heading h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  color: #193d2a;
+  margin: 12px 0 8px;
+}
+
+.form-heading p {
+  color: #85877e;
+  font-size: 14px;
+}
+
+/* INPUTS */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+.form-group label,
+.role-heading {
+  color: #344c3b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 13px 14px;
+  background: white;
+  border: 1px solid #e2e5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #47794f;
+  box-shadow: 0 0 0 3px rgba(71, 121, 79, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #b1b4aa;
+}
+
+/* ROLE SELECTION */
+
+.role-section {
+  margin-top: 26px;
+}
+
+.role-heading {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.role-card {
+  min-height: 85px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  background: white;
+  border: 1px solid #e2e5db;
+  border-radius: 9px;
+  color: #526253;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.role-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.role-card.selected {
+  background: #edf3e8;
+  border: 1.5px solid #47794f;
+  color: #245b36;
+}
+
+.role-card:focus-within {
+  outline: 2px solid #47794f;
+  outline-offset: 2px;
+}
+
+.role-icon {
+  font-size: 23px;
+}
+
+/* BUTTON */
+
+.register-button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 25px;
+  border: none;
+  border-radius: 8px;
+  background: #245b36;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.register-button:hover {
+  background: #19452a;
+  transform: translateY(-1px);
+}
+
+.register-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-text {
+  text-align: center;
+  margin-top: 22px;
+  color: #777d72;
+  font-size: 13px;
+}
+
+.login-text a {
+  color: #245b36;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.privacy-text {
+  text-align: center;
+  color: #a0a397;
+  font-size: 11px;
+  margin-top: 25px;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 13px;
+}
+
+.success-message {
+  color: #218838;
+  font-size: 13px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-panel {
+    min-height: 390px;
+    padding: 35px;
+  }
+
+  .welcome-content h1 {
+    font-size: 42px;
+  }
+}
+
+@media (max-width: 520px) {
+  .form-panel {
+    padding: 35px 20px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: span 1;
+  }
+
+  .role-options {
+    gap: 7px;
+  }
+
+  .role-card {
+    font-size: 11px;
+  }
+}
+
+/* Make registration page occupy full browser width */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.auth-page {
+  width: 100%;
+  max-width: none;
+  min-width: 100%;
+  margin: 0;
+  grid-template-columns: 45% 55%;
+}
+
+.welcome-panel,
+.form-panel {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Center content inside the green panel */
+
+.welcome-content {
+  width: 100%;
+  max-width: 510px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcome-panel {
+  align-items: stretch;
+}
+
+.brand,
+.welcome-footer {
+  width: 100%;
+}
+.form-group input {
+  background-color: #ffffff;
+  color: #26352c;
+  border: 1px solid #d9ded8;
+}
+
+.form-group input:focus,
+.form-group input:active,
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus {
+  background-color: #ffffff;
+  color: #26352c;
+  -webkit-text-fill-color: #26352c;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+}
+
+.form-group input::placeholder {
+  color: #999999;
+}

@@ -1,0 +1,152 @@
+
+.donation-page {
+  min-height: 100vh;
+  background: #f5f7f6;
+  padding: 35px;
+  color: #24352d;
+  text-align: left;
+}
+
+.donation-header {
+  max-width: 850px;
+  margin: 0 auto 25px;
+}
+
+.donation-header h1 {
+  font-size: 30px;
+  margin: 25px 0 8px;
+}
+
+.donation-header p {
+  color: #718078;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #26734f;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.donation-form {
+  max-width: 850px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px #00000008;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #26734f;
+  margin-bottom: 25px;
+}
+
+.form-section-title h2 {
+  color: #24352d;
+  font-size: 21px;
+}
+
+.donation-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 22px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.donation-form input,
+.donation-form select,
+.donation-form textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dce4de;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  background: white;
+  color: #24352d;
+  outline: none;
+}
+
+.donation-form input:focus,
+.donation-form select:focus,
+.donation-form textarea:focus {
+  border-color: #26734f;
+  box-shadow: 0 0 0 3px #26734f18;
+}
+
+.donation-form textarea {
+  resize: vertical;
+}
+
+.donation-form small {
+  color: #718078;
+  font-weight: normal;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.submit-donation {
+  width: 100%;
+  padding: 15px;
+  background: #26734f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit-donation:hover {
+  background: #195b3c;
+}
+
+@media (max-width: 600px) {
+  .donation-page {
+    padding: 18px;
+  }
+
+  .donation-form {
+    padding: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.form-error {
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.form-success {
+  color: #166534;
+  background: #dcfce7;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.submit-donation:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

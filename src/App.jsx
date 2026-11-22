@@ -1,4 +1,4 @@
-
+import { AuthProvider } from './modules/authentication/AuthContext.jsx';
 import {
   BrowserRouter,
   Routes,
@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 
 // Authentication
-import { AuthProvider } from "./modules/authentication/AuthContext";
+
 import ProtectedRoute from "./modules/authentication/ProtectedRoute";
 
 // Authentication pages

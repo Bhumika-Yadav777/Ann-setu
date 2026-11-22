@@ -74,7 +74,7 @@ function App() {
 
             {/* NGO module */}
             <Route
-              path="/ngo/*"
+              path="/ngo-dashboard/*"
               element={<NgoRoutes />}
             />
 

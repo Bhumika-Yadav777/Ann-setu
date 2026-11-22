@@ -67,13 +67,13 @@ function NgoDashboard() {
 
       </div>
 
-      <Link to="/ngo/donations">
+      <Link to="/ngo-dashboard/donations">
         Explore Available Food
       </Link>
 
       <br />
 
-      <Link to="/ngo/requests">
+      <Link to="/ngo-dashboard/requests">
         View My Requests
       </Link>
     </section>

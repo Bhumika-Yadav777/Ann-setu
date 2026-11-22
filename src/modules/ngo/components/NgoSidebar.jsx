@@ -9,15 +9,15 @@ function NgoSidebar() {
       <p>NGO Panel</p>
 
       <nav>
-        <NavLink to="/ngo" end>
+        <NavLink to="/ngo-dashboard" end>
           Dashboard
         </NavLink>
 
-        <NavLink to="/ngo/donations">
+        <NavLink to="/ngo-dashboard/donations">
           Available Donations
         </NavLink>
 
-        <NavLink to="/ngo/requests">
+        <NavLink to="/ngo-dashboard/requests">
           My Requests
         </NavLink>
       </nav>

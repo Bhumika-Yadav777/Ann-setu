@@ -43,7 +43,7 @@
 /* Back button - aligned left */
 
 .profile-back-button {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
@@ -72,9 +72,16 @@
 
 .profile-heading {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  width: 100%;
   margin: 30px 0 23px;
+  text-align: center;
+}
+
+.profile-heading-content {
+  width: 100%;
+  text-align: center;
 }
 
 .profile-eyebrow {
@@ -100,23 +107,6 @@
   margin: 0;
   color: #849087;
   font-size: 13px;
-}
-
-.profile-heading-icon {
-  width: 55px;
-  height: 55px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #dce8d9;
-  border-radius: 18px;
-  background: #eaf2e7;
-  color: var(--green);
-  transform: rotate(-7deg);
-  transition: 0.3s ease;
-}
-
-.profile-heading-icon:hover {
-  transform: rotate(7deg) scale(1.08);
 }
 
 /* Main card */
@@ -163,7 +153,7 @@
   align-items: center;
   gap: 19px;
   padding: 0 7%;
-  margin-top: -1px;
+  margin-top: 0;
   min-height: 145px;
   position: relative;
 }
@@ -175,7 +165,7 @@
   height: 91px;
   display: grid;
   place-items: center;
-  margin-top: -30px;
+  margin-top: 0;
   border: 6px solid #fffefa;
   border-radius: 50%;
   background: linear-gradient(145deg, #477c55, #244b37);
@@ -674,12 +664,6 @@
   .profile-card {
     border-radius: 17px;
   }
-
-  .profile-cover {
-    height: 38px;
-    border-radius: 17px 17px 0 0;
-  }
-
   .profile-intro {
     flex-wrap: wrap;
     gap: 12px;

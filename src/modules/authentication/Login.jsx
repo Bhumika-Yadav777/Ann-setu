@@ -37,19 +37,86 @@ function Login() {
         .eq('id', data.user.id)
         .single();
 
-    setLoading(false);
-
     if (profileError) {
       setError('Unable to fetch your profile. Please try again.');
       await supabase.auth.signOut();
+      setLoading(false);
       return;
     }
 
-    if (profile.role === 'donor') navigate('/donor-dashboard');
-    else if (profile.role === 'ngo') navigate('/ngo-dashboard');
-    else if (profile.role === 'beneficiary') navigate('/beneficiary-dashboard');
-    else if (profile.role === 'admin') navigate('/admin-dashboard');
-    else setError('Invalid user role.');
+    if (profile.role === 'ngo') {
+      const { data: verification, error: verificationError } =
+        await supabase
+          .from('ngo_verifications')
+          .select('status')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
+
+      setLoading(false);
+
+      if (verificationError) {
+        setError('Unable to check NGO verification status.');
+        await supabase.auth.signOut();
+        return;
+      }
+
+      if (!verification || verification.status !== 'approved') {
+        navigate('/ngo-verification');
+        return;
+      }
+
+      navigate('/ngo-dashboard');
+      return;
+    }
+
+    setLoading(false);
+
+    
+if (profile.role === 'donor') {
+  navigate('/donor-dashboard');
+} 
+else if (profile.role === 'beneficiary') {
+  navigate('/beneficiary-dashboard');
+} 
+else if (profile.role === 'ngo') {
+
+  const { data: verificationData, error: verificationError } =
+    await supabase
+      .from('ngo_verifications')
+      .select('status')
+      .eq('user_id', data.user.id)
+      .maybeSingle();
+
+  if (verificationError) {
+    setError('Unable to check NGO verification status.');
+    await supabase.auth.signOut();
+    return;
+  }
+
+  if (!verificationData) {
+    // NGO has not submitted an application
+    navigate('/ngo-verification');
+  }
+  else if (verificationData.status === 'pending') {
+    // Application is under review
+    navigate('/ngo-verification-status');
+  }
+  else if (verificationData.status === 'approved') {
+    // NGO is verified
+    navigate('/ngo-dashboard');
+  }
+  else if (verificationData.status === 'rejected') {
+    // NGO needs to correct application
+    navigate('/ngo-verification');
+  }
+} 
+else if (profile.role === 'admin') {
+  navigate('/admin-dashboard');
+} 
+else {
+  setError('Invalid user role.');
+}
+
   };
 
   return (

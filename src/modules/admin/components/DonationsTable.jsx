@@ -1,55 +1,82 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
-
-const sampleDonations = [
-  {
-    id: "DON001",
-    food: "Vegetable Biryani",
-    donor: "Rahul Sharma",
-    quantity: "20 Plates",
-    category: "Cooked Food",
-    status: "Available"
-  },
-  {
-    id: "DON002",
-    food: "Fresh Apples",
-    donor: "Green Restaurant",
-    quantity: "10 Kg",
-    category: "Fruits",
-    status: "Completed"
-  },
-  {
-    id: "DON003",
-    food: "Rice and Dal",
-    donor: "Priya Patel",
-    quantity: "15 Plates",
-    category: "Cooked Food",
-    status: "Requested"
-  },
-  {
-    id: "DON004",
-    food: "Bread Packets",
-    donor: "City Bakery",
-    quantity: "30 Packets",
-    category: "Bakery",
-    status: "Available"
-  },
-  {
-    id: "DON005",
-    food: "Fresh Vegetables",
-    donor: "Amit Kumar",
-    quantity: "8 Kg",
-    category: "Vegetables",
-    status: "Expired"
-  }
-];
+import { supabase } from "../../../services/supabaseClient";
 
 function DonationsTable() {
+  const [donations, setDonations] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filteredDonations = sampleDonations.filter((donation) => {
+  useEffect(() => {
+    const fetchDonations = async () => {
+      setLoading(true);
+      setError("");
+
+      // Fetch all donations
+      const { data: donationData, error: donationError } =
+        await supabase
+          .from("food_donations")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+      if (donationError) {
+        console.error("Donation fetch failed:", donationError.message);
+        setError(donationError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Collect unique donor IDs
+      const donorIds = [
+        ...new Set(donationData.map((item) => item.donor_id))
+      ];
+
+      // Fetch donor profiles separately
+      let donorMap = {};
+
+      if (donorIds.length > 0) {
+        const { data: profiles, error: profileError } =
+          await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", donorIds);
+
+        if (profileError) {
+          console.error("Donor fetch failed:", profileError.message);
+          setError(profileError.message);
+          setLoading(false);
+          return;
+        }
+
+        donorMap = Object.fromEntries(
+          profiles.map((profile) => [
+            profile.id,
+            profile.full_name
+          ])
+        );
+      }
+
+      // Combine donation and donor information
+      const formattedDonations = donationData.map((item) => ({
+        id: item.id,
+        food: item.food_name,
+        donor: donorMap[item.donor_id] || "Unknown donor",
+        quantity: `${item.quantity} ${item.quantity_unit}`,
+        category: item.category,
+        status: item.status
+      }));
+
+      setDonations(formattedDonations);
+      setLoading(false);
+    };
+
+    fetchDonations();
+  }, []);
+
+  const filteredDonations = donations.filter((donation) => {
     const matchesSearch =
       donation.food.toLowerCase().includes(search.toLowerCase()) ||
       donation.donor.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,19 +89,22 @@ function DonationsTable() {
   });
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Available":
+    switch (status.toLowerCase()) {
+      case "available":
         return "status-active";
-      case "Completed":
+      case "completed":
         return "status-completed";
-      case "Requested":
+      case "requested":
         return "status-requested";
-      case "Expired":
+      case "expired":
         return "status-expired";
       default:
         return "";
     }
   };
+
+  const formatStatus = (status) =>
+    status.charAt(0).toUpperCase() + status.slice(1);
 
   return (
     <div className="admin-table-container">
@@ -100,10 +130,10 @@ function DonationsTable() {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="All">All Statuses</option>
-            <option value="Available">Available</option>
-            <option value="Requested">Requested</option>
-            <option value="Completed">Completed</option>
-            <option value="Expired">Expired</option>
+            <option value="available">Available</option>
+            <option value="requested">Requested</option>
+            <option value="completed">Completed</option>
+            <option value="expired">Expired</option>
           </select>
         </div>
       </div>
@@ -122,7 +152,19 @@ function DonationsTable() {
           </thead>
 
           <tbody>
-            {filteredDonations.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="6" className="empty-table">
+                  Loading donations...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="6" className="empty-table">
+                  Failed to load donations: {error}
+                </td>
+              </tr>
+            ) : filteredDonations.length > 0 ? (
               filteredDonations.map((donation) => (
                 <tr key={donation.id}>
                   <td className="user-name">{donation.id}</td>
@@ -136,7 +178,7 @@ function DonationsTable() {
                         donation.status
                       )}`}
                     >
-                      {donation.status}
+                      {formatStatus(donation.status)}
                     </span>
                   </td>
                 </tr>
@@ -153,7 +195,7 @@ function DonationsTable() {
       </div>
 
       <div className="admin-table-footer">
-        Showing {filteredDonations.length} of {sampleDonations.length} donations
+        Showing {filteredDonations.length} of {donations.length} donations
       </div>
     </div>
   );

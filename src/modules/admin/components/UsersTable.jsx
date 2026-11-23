@@ -1,52 +1,41 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
-
-const sampleUsers = [
-  {
-    id: 1,
-    name: "Rahul Sharma",
-    email: "rahul@gmail.com",
-    role: "Donor",
-    status: "Active"
-  },
-  {
-    id: 2,
-    name: "Priya Patel",
-    email: "priya@gmail.com",
-    role: "NGO",
-    status: "Active"
-  },
-  {
-    id: 3,
-    name: "Amit Kumar",
-    email: "amit@gmail.com",
-    role: "Beneficiary",
-    status: "Active"
-  },
-  {
-    id: 4,
-    name: "Sneha Das",
-    email: "sneha@gmail.com",
-    role: "Volunteer",
-    status: "Active"
-  },
-  {
-    id: 5,
-    name: "Green Earth Foundation",
-    email: "greenearth@gmail.com",
-    role: "NGO",
-    status: "Pending"
-  }
-];
+import { supabase } from "../../../services/supabaseClient";
 
 function UsersTable() {
+  const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filteredUsers = sampleUsers.filter((user) => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError("");
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, role, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Failed to fetch users:", error.message);
+        setError(error.message);
+      } else {
+        setUsers(data || []);
+      }
+
+      setLoading(false);
+    };
+
+    fetchUsers();
+  }, []);
+
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
+      user.full_name.toLowerCase().includes(search.toLowerCase()) ||
       user.email.toLowerCase().includes(search.toLowerCase());
 
     const matchesRole =
@@ -60,7 +49,7 @@ function UsersTable() {
       <div className="admin-table-toolbar">
         <div>
           <h2>All Users</h2>
-          <p>View and manage registered platform users.</p>
+          <p>View registered platform users.</p>
         </div>
 
         <div className="admin-table-filters">
@@ -79,10 +68,9 @@ function UsersTable() {
             onChange={(e) => setRoleFilter(e.target.value)}
           >
             <option value="All">All Roles</option>
-            <option value="Donor">Donor</option>
-            <option value="NGO">NGO</option>
-            <option value="Beneficiary">Beneficiary</option>
-            <option value="Volunteer">Volunteer</option>
+            <option value="donor">Donor</option>
+            <option value="ngo">NGO</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
       </div>
@@ -94,30 +82,36 @@ function UsersTable() {
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Status</th>
+              <th>Account</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredUsers.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="empty-table">
+                  Loading users...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="4" className="empty-table">
+                  Failed to load users: {error}
+                </td>
+              </tr>
+            ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td className="user-name">{user.name}</td>
+                  <td className="user-name">{user.full_name}</td>
                   <td>{user.email}</td>
                   <td>
                     <span className="role-badge">
-                      {user.role}
+                      {user.role.toUpperCase()}
                     </span>
                   </td>
                   <td>
-                    <span
-                      className={`status-badge ${
-                        user.status === "Active"
-                          ? "status-active"
-                          : "status-pending"
-                      }`}
-                    >
-                      {user.status}
+                    <span className="status-badge status-active">
+                      Registered
                     </span>
                   </td>
                 </tr>
@@ -134,7 +128,7 @@ function UsersTable() {
       </div>
 
       <div className="admin-table-footer">
-        Showing {filteredUsers.length} of {sampleUsers.length} users
+        Showing {filteredUsers.length} of {users.length} users
       </div>
     </div>
   );

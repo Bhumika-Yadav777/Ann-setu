@@ -1,30 +1,56 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Utensils } from 'lucide-react';
-import { useAuth } from '../../authentication/useAuth';
-import { supabase } from '../../../services/supabaseClient';
-import { getCoordinates } from '../../ngo/services/geocodingService';
-import './AddDonation.css';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Utensils,
+  MapPin,
+  ImagePlus,
+  Package,
+  Heart,
+  Upload,
+  CheckCircle,
+  Clock,
+  Sparkles,
+} from "lucide-react";
+
+import { useAuth } from "../../authentication/useAuth";
+import { supabase } from "../../../services/supabaseClient";
+import { getCoordinates } from "../../ngo/services/geocodingService";
+
+import "./AddDonation.css";
 
 function AddDonation() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    food_name: '',
-    category: '',
-    description: '',
-    quantity: '',
-    quantity_unit: 'servings',
-    pickup_location: '',
-    packaging_status: 'not_packed',
+    food_name: "",
+    category: "",
+    description: "",
+    quantity: "",
+    quantity_unit: "servings",
+    pickup_location: "",
+    packaging_status: "not_packed",
   });
 
   const [foodImage, setFoodImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (!foodImage) {
+      setImagePreview("");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(foodImage);
+    setImagePreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [foodImage]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,43 +61,50 @@ function AddDonation() {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const selectedFile = e.target.files?.[0] || null;
+
+    setFoodImage(selectedFile);
+    setError("");
+    setSuccess("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formElement = e.currentTarget;
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (!user?.id) {
-      setError('Please log in before submitting a donation.');
+      setError("Please log in before submitting a donation.");
       return;
     }
 
     if (!formData.pickup_location.trim()) {
-      setError('Please enter a pickup location.');
+      setError("Please enter a pickup location.");
       return;
     }
 
     if (Number(formData.quantity) <= 0) {
-      setError('Quantity must be greater than zero.');
+      setError("Quantity must be greater than zero.");
       return;
     }
 
-    // Validate food image
     if (foodImage) {
       const allowedTypes = [
-        'image/jpeg',
-        'image/png',
-        'image/webp',
+        "image/jpeg",
+        "image/png",
+        "image/webp",
       ];
 
       if (!allowedTypes.includes(foodImage.type)) {
-        setError('Only JPG, PNG and WEBP images are allowed.');
+        setError("Only JPG, PNG and WEBP images are allowed.");
         return;
       }
 
       if (foodImage.size > 5 * 1024 * 1024) {
-        setError('Image size must not exceed 5 MB.');
+        setError("Image size must not exceed 5 MB.");
         return;
       }
     }
@@ -88,7 +121,7 @@ function AddDonation() {
 
       if (!coordinates) {
         throw new Error(
-          'Location not found. Please enter a more complete pickup address, including city and state.'
+          "Location not found. Please enter a complete address, including city and state."
         );
       }
 
@@ -96,27 +129,24 @@ function AddDonation() {
       let imageUrl = null;
 
       if (foodImage) {
-        const fileExtension = foodImage.name.split('.').pop();
+        const fileExtension = foodImage.name.split(".").pop();
         const fileName = `${crypto.randomUUID()}.${fileExtension}`;
         const filePath = `${user.id}/${fileName}`;
 
         const { data: uploadData, error: uploadError } =
           await supabase.storage
-            .from('food-images')
+            .from("food-images")
             .upload(filePath, foodImage, {
               contentType: foodImage.type,
               upsert: false,
             });
 
-        if (uploadError) {
-          throw uploadError;
-        }
+        if (uploadError) throw uploadError;
 
         uploadedImagePath = uploadData.path;
 
-        // Get public image URL
         const { data: publicUrlData } = supabase.storage
-          .from('food-images')
+          .from("food-images")
           .getPublicUrl(uploadData.path);
 
         imageUrl = publicUrlData.publicUrl;
@@ -124,7 +154,7 @@ function AddDonation() {
 
       // 3. Save donation and coordinates in Supabase
       const { error: insertError } = await supabase
-        .from('food_donations')
+        .from("food_donations")
         .insert({
           donor_id: user.id,
           food_name: formData.food_name.trim(),
@@ -135,50 +165,46 @@ function AddDonation() {
           food_image_url: imageUrl,
           pickup_location: formData.pickup_location.trim(),
           packaging_status: formData.packaging_status,
-
-          // Map coordinates
           latitude: coordinates.latitude,
           longitude: coordinates.longitude,
         });
 
-      if (insertError) {
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
       // 4. Reset form
       setFormData({
-        food_name: '',
-        category: '',
-        description: '',
-        quantity: '',
-        quantity_unit: 'servings',
-        pickup_location: '',
-        packaging_status: 'not_packed',
+        food_name: "",
+        category: "",
+        description: "",
+        quantity: "",
+        quantity_unit: "servings",
+        pickup_location: "",
+        packaging_status: "not_packed",
       });
 
       setFoodImage(null);
       formElement.reset();
 
       setSuccess(
-        'Food donation submitted successfully! Its location has been saved.'
+        "Your food donation has been submitted successfully!"
       );
 
     } catch (err) {
-      console.error('Donation submission error:', err);
+      console.error("Donation submission error:", err);
 
       // Remove uploaded image if database insertion fails
       if (uploadedImagePath) {
         const { error: cleanupError } = await supabase.storage
-          .from('food-images')
+          .from("food-images")
           .remove([uploadedImagePath]);
 
         if (cleanupError) {
-          console.error('Image cleanup error:', cleanupError);
+          console.error("Image cleanup error:", cleanupError);
         }
       }
 
       setError(
-        err.message || 'Unable to submit donation. Please try again.'
+        err.message || "Unable to submit donation. Please try again."
       );
 
     } finally {
@@ -187,166 +213,292 @@ function AddDonation() {
   };
 
   return (
-    <div className="donation-page">
+    <main className="add-donation-page">
 
-      <div className="donation-header">
+      <header className="add-donation-topbar">
         <button
           type="button"
-          className="back-button"
-          onClick={() => navigate('/donor-dashboard')}
+          className="donation-back-link"
+          onClick={() => navigate("/donor-dashboard")}
         >
           <ArrowLeft size={18} />
           Back to Dashboard
         </button>
 
-        <h1>Add Food Donation</h1>
-        <p>Share surplus food with people who need it.</p>
+        <div className="donation-topbar-brand">
+          <Utensils size={20} />
+          <span>Ann-Setu</span>
+        </div>
+      </header>
+
+      <section className="donation-hero">
+        <div className="donation-hero-text">
+          <span className="donation-eyebrow">
+            <Sparkles size={15} />
+            SHARE FOOD · SPREAD KINDNESS
+          </span>
+
+          <h1>
+            A little sharing
+            <br />
+            <span>goes a long way.</span>
+          </h1>
+
+          <p>
+            Turn your surplus food into someone's reason to smile.
+            Add your donation and help bring good food to people
+            who need it.
+          </p>
+
+          <div className="donation-hero-note">
+            <Heart size={17} />
+            Every meal shared makes a difference.
+          </div>
+        </div>
+
+        <div className="donation-hero-art">
+          <img
+            src="https://images.unsplash.com/photo-1547592180-85f173990554?w=900&auto=format&fit=crop"
+            alt="A fresh and colourful meal"
+          />
+
+          <div className="donation-art-card">
+            <span>🌱</span>
+            <div>
+              <strong>Share More</strong>
+              <small>Waste Less. Care More.</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="donation-form-intro">
+        <div>
+          <span className="donation-eyebrow">MAKE A DIFFERENCE</span>
+          <h2>Add a Food Donation</h2>
+          <p>Fill in the details below to share your food with the community.</p>
+        </div>
+
+        <div className="donation-secure-note">
+          <CheckCircle size={17} />
+          Simple and secure submission
+        </div>
       </div>
 
       <form className="donation-form" onSubmit={handleSubmit}>
 
-        <div className="form-section-title">
-          <Utensils size={21} />
-          <h2>Food Information</h2>
-        </div>
+        <section className="donation-form-section">
+          <div className="donation-section-heading">
+            <div className="donation-section-icon">
+              <Utensils size={21} />
+            </div>
+            <div>
+              <h3>Food Information</h3>
+              <p>Tell us about the food you want to donate.</p>
+            </div>
+          </div>
 
-        <label>
-          Food Name *
-          <input
-            type="text"
-            name="food_name"
-            value={formData.food_name}
-            onChange={handleChange}
-            placeholder="e.g. Vegetable Rice"
-            required
-          />
-        </label>
+          <div className="donation-field-grid">
+            <label className="donation-field full-width">
+              <span>Food Name <b>*</b></span>
+              <input
+                type="text"
+                name="food_name"
+                value={formData.food_name}
+                onChange={handleChange}
+                placeholder="e.g. Vegetable Rice"
+                required
+              />
+            </label>
 
-        <label>
-          Food Category *
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select category</option>
-            <option value="cooked_meals">Cooked Meals</option>
-            <option value="fruits">Fruits</option>
-            <option value="vegetables">Vegetables</option>
-            <option value="bakery">Bakery Items</option>
-            <option value="dairy">Dairy Products</option>
-            <option value="packaged_food">Packaged Food</option>
-            <option value="other">Other</option>
-          </select>
-        </label>
+            <label className="donation-field full-width">
+              <span>Food Category <b>*</b></span>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select food category</option>
+                <option value="cooked_meals">Cooked Meals</option>
+                <option value="fruits">Fruits</option>
+                <option value="vegetables">Vegetables</option>
+                <option value="bakery">Bakery Items</option>
+                <option value="dairy">Dairy Products</option>
+                <option value="packaged_food">Packaged Food</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
 
-        <label>
-          Description
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Describe the food, preparation time, ingredients, etc."
-            rows="4"
-          />
-        </label>
+            <label className="donation-field full-width">
+              <span>Description</span>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Describe the food, preparation time, ingredients, freshness, etc."
+                rows="4"
+              />
+            </label>
 
-        <div className="form-row">
+            <label className="donation-field">
+              <span>Quantity <b>*</b></span>
+              <input
+                type="number"
+                name="quantity"
+                min="0.01"
+                step="0.01"
+                value={formData.quantity}
+                onChange={handleChange}
+                placeholder="e.g. 20"
+                required
+              />
+            </label>
 
-          <label>
-            Quantity *
+            <label className="donation-field">
+              <span>Quantity Unit <b>*</b></span>
+              <select
+                name="quantity_unit"
+                value={formData.quantity_unit}
+                onChange={handleChange}
+                required
+              >
+                <option value="servings">Servings</option>
+                <option value="kg">Kilograms</option>
+                <option value="grams">Grams</option>
+                <option value="packets">Packets</option>
+                <option value="litres">Litres</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section className="donation-form-section">
+          <div className="donation-section-heading">
+            <div className="donation-section-icon">
+              <ImagePlus size={21} />
+            </div>
+            <div>
+              <h3>Food Image</h3>
+              <p>Add a clear photo so NGOs can identify your donation.</p>
+            </div>
+          </div>
+
+          <label className="donation-upload-area">
+            {imagePreview ? (
+              <div className="donation-image-preview">
+                <img src={imagePreview} alt="Selected food preview" />
+                <span className="donation-change-image">
+                  <Upload size={16} /> Change Image
+                </span>
+              </div>
+            ) : (
+              <div className="donation-upload-content">
+                <div className="donation-upload-icon">
+                  <Upload size={27} />
+                </div>
+                <strong>Click to upload your food image</strong>
+                <span>JPG, PNG or WEBP · Maximum 5 MB</span>
+              </div>
+            )}
+
             <input
-              type="number"
-              name="quantity"
-              min="0.01"
-              step="0.01"
-              value={formData.quantity}
-              onChange={handleChange}
-              placeholder="e.g. 20"
-              required
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleImageChange}
             />
           </label>
+        </section>
 
-          <label>
-            Quantity Unit *
-            <select
-              name="quantity_unit"
-              value={formData.quantity_unit}
-              onChange={handleChange}
-              required
-            >
-              <option value="servings">Servings</option>
-              <option value="kg">Kilograms</option>
-              <option value="grams">Grams</option>
-              <option value="packets">Packets</option>
-              <option value="litres">Litres</option>
-            </select>
-          </label>
+        <section className="donation-form-section">
+          <div className="donation-section-heading">
+            <div className="donation-section-icon">
+              <MapPin size={21} />
+            </div>
+            <div>
+              <h3>Pickup Details</h3>
+              <p>Help NGOs find where they can collect the donation.</p>
+            </div>
+          </div>
 
-        </div>
+          <div className="donation-field-grid">
+            <label className="donation-field full-width">
+              <span>Pickup Location <b>*</b></span>
+              <textarea
+                name="pickup_location"
+                value={formData.pickup_location}
+                onChange={handleChange}
+                placeholder="Enter complete address, area, city and state"
+                rows="3"
+                required
+              />
+              <small>
+                <MapPin size={13} />
+                A complete address helps us place your donation on the map.
+              </small>
+            </label>
 
-        <label>
-          Food Image
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onChange={(e) =>
-              setFoodImage(e.target.files?.[0] || null)
-            }
-          />
-          <small>
-            Accepted formats: JPG, PNG, WEBP. Maximum size: 5 MB.
-          </small>
-        </label>
-
-        <label>
-          Pickup Location *
-          <textarea
-            name="pickup_location"
-            value={formData.pickup_location}
-            onChange={handleChange}
-            placeholder="Enter complete address, city and state"
-            rows="3"
-            required
-          />
-          <small>
-            Enter a complete address so your donation can appear on the map.
-          </small>
-        </label>
-
-        <label>
-          Packaging Status *
-          <select
-            name="packaging_status"
-            value={formData.packaging_status}
-            onChange={handleChange}
-            required
-          >
-            <option value="not_packed">Not Packed</option>
-            <option value="partially_packed">Partially Packed</option>
-            <option value="packed">Packed</option>
-          </select>
-        </label>
+            <label className="donation-field full-width">
+              <span>Packaging Status <b>*</b></span>
+              <select
+                name="packaging_status"
+                value={formData.packaging_status}
+                onChange={handleChange}
+                required
+              >
+                <option value="not_packed">Not Packed</option>
+                <option value="partially_packed">Partially Packed</option>
+                <option value="packed">Packed</option>
+              </select>
+            </label>
+          </div>
+        </section>
 
         {error && (
-          <p className="form-error">{error}</p>
+          <div className="donation-alert donation-alert-error">
+            {error}
+          </div>
         )}
 
         {success && (
-          <p className="form-success">{success}</p>
+          <div className="donation-alert donation-alert-success">
+            <CheckCircle size={19} />
+            {success}
+          </div>
         )}
 
-        <button
-          type="submit"
-          className="submit-donation"
-          disabled={submitting}
-        >
-          {submitting ? 'Finding Location & Submitting...' : 'Submit Donation'}
-        </button>
+        <div className="donation-submit-area">
+          <div className="donation-submit-note">
+            <Heart size={17} />
+            Thank you for helping reduce food waste.
+          </div>
+
+          <button
+            type="submit"
+            className="submit-donation"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <Clock size={18} />
+                Finding Location & Submitting...
+              </>
+            ) : (
+              <>
+                <Heart size={18} />
+                Submit Food Donation
+              </>
+            )}
+          </button>
+        </div>
 
       </form>
-    </div>
+
+      <footer className="donation-page-footer">
+        Made with care for a world where every meal matters. ♥
+      </footer>
+
+    </main>
   );
 }
 

@@ -1,7 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../../../services/supabaseClient";
-
+import { useEffect, useState, useCallback } from "react";
 import {
   Search,
   Check,
@@ -10,6 +8,7 @@ import {
   Building2,
   AlertCircle
 } from "lucide-react";
+import { supabase } from "../../../services/supabaseClient";
 
 function NGOApprovals() {
   const [ngos, setNgos] = useState([]);
@@ -23,28 +22,63 @@ function NGOApprovals() {
   const [selectedNGO, setSelectedNGO] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
+  // Fetch NGO applications and corresponding profile emails
   const fetchNGOs = useCallback(async (showLoader = true) => {
     if (showLoader) setLoading(true);
 
-    const { data, error } = await supabase
+    setError("");
+
+    const { data: ngoData, error: ngoError } = await supabase
       .from("ngo_verifications")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("NGO fetch error:", error);
-      setError("Unable to load NGO applications. Please check admin permissions.");
+    if (ngoError) {
+      console.error("NGO fetch error:", ngoError);
+      setError(ngoError.message);
       setNgos([]);
-    } else {
-      setError("");
-      setNgos(data || []);
+      setLoading(false);
+      return;
     }
 
+    const userIds = [
+      ...new Set((ngoData || []).map((ngo) => ngo.user_id))
+    ];
+
+    let emailMap = {};
+
+    if (userIds.length > 0) {
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .in("id", userIds);
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        setError(profileError.message);
+        setLoading(false);
+        return;
+      }
+
+      emailMap = Object.fromEntries(
+        (profiles || []).map((profile) => [
+          profile.id,
+          profile.email
+        ])
+      );
+    }
+
+    const formattedNGOs = (ngoData || []).map((ngo) => ({
+      ...ngo,
+      email: emailMap[ngo.user_id] || "Email unavailable"
+    }));
+
+    setNgos(formattedNGOs);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchNGOs(false);
+    fetchNGOs();
   }, [fetchNGOs]);
 
   // Approve NGO
@@ -58,7 +92,7 @@ function NGOApprovals() {
     setActionLoading(ngo.id);
     setError("");
 
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from("ngo_verifications")
       .update({
         status: "approved",
@@ -67,9 +101,9 @@ function NGOApprovals() {
       })
       .eq("id", ngo.id);
 
-    if (error) {
-      console.error("Approval error:", error);
-      setError("Unable to approve this NGO. Please try again.");
+    if (updateError) {
+      console.error("Approval error:", updateError);
+      setError(updateError.message);
     } else {
       await fetchNGOs(false);
     }
@@ -77,7 +111,7 @@ function NGOApprovals() {
     setActionLoading(null);
   };
 
-  // Reject NGO
+  // Reject NGO with a mandatory reason
   const rejectNGO = async () => {
     if (!rejectionReason.trim()) {
       setError("Please enter a reason for rejection.");
@@ -87,7 +121,7 @@ function NGOApprovals() {
     setActionLoading(selectedNGO.id);
     setError("");
 
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from("ngo_verifications")
       .update({
         status: "rejected",
@@ -96,9 +130,9 @@ function NGOApprovals() {
       })
       .eq("id", selectedNGO.id);
 
-    if (error) {
-      console.error("Rejection error:", error);
-      setError("Unable to reject this NGO. Please try again.");
+    if (updateError) {
+      console.error("Rejection error:", updateError);
+      setError(updateError.message);
     } else {
       setSelectedNGO(null);
       setRejectionReason("");
@@ -108,7 +142,7 @@ function NGOApprovals() {
     setActionLoading(null);
   };
 
-  // Search and filter
+  // Search and status filtering
   const filteredNGOs = ngos.filter((ngo) => {
     const searchText = search.toLowerCase();
 
@@ -116,7 +150,8 @@ function NGOApprovals() {
       ngo.ngo_name?.toLowerCase().includes(searchText) ||
       ngo.registration_number?.toLowerCase().includes(searchText) ||
       ngo.city?.toLowerCase().includes(searchText) ||
-      ngo.contact_person?.toLowerCase().includes(searchText);
+      ngo.contact_person?.toLowerCase().includes(searchText) ||
+      ngo.email?.toLowerCase().includes(searchText);
 
     const matchesStatus =
       statusFilter === "All" ||
@@ -185,12 +220,13 @@ function NGOApprovals() {
         <p style={modalStyles.pageError}>{error}</p>
       )}
 
-      {/* Table */}
+      {/* NGO Table */}
       <div className="admin-table-scroll">
         <table className="admin-table">
           <thead>
             <tr>
               <th>NGO Name</th>
+              <th>Email</th>
               <th>Registration Number</th>
               <th>Location</th>
               <th>Contact Person</th>
@@ -202,7 +238,7 @@ function NGOApprovals() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="6" className="empty-table">
+                <td colSpan="7" className="empty-table">
                   Loading NGO applications...
                 </td>
               </tr>
@@ -211,18 +247,26 @@ function NGOApprovals() {
                 <tr key={ngo.id}>
                   <td className="user-name">{ngo.ngo_name}</td>
 
+                  <td>{ngo.email}</td>
+
                   <td>{ngo.registration_number}</td>
 
-                  <td>{ngo.city}, {ngo.state}</td>
-
                   <td>
-                    {ngo.contact_person}
-                    <br />
-                    <small>{ngo.contact_phone}</small>
+                    {[ngo.city, ngo.state].filter(Boolean).join(", ") ||
+                      ngo.address ||
+                      "Not provided"}
                   </td>
 
                   <td>
-                    <span className={`status-badge ${getStatusClass(ngo.status)}`}>
+                    {ngo.contact_person || "Not provided"}
+                    <br />
+                    <small>{ngo.contact_phone || ""}</small>
+                  </td>
+
+                  <td>
+                    <span
+                      className={`status-badge ${getStatusClass(ngo.status)}`}
+                    >
                       {ngo.status}
                     </span>
                   </td>
@@ -231,15 +275,19 @@ function NGOApprovals() {
                     {ngo.status === "pending" ? (
                       <div className="ngo-action-buttons">
                         <button
+                          type="button"
                           className="ngo-approve-btn"
                           onClick={() => approveNGO(ngo)}
                           disabled={actionLoading === ngo.id}
                         >
                           <Check size={16} />
-                          Approve
+                          {actionLoading === ngo.id
+                            ? "Updating..."
+                            : "Approve"}
                         </button>
 
                         <button
+                          type="button"
                           className="ngo-reject-btn"
                           onClick={() => {
                             setSelectedNGO(ngo);
@@ -262,7 +310,7 @@ function NGOApprovals() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="empty-table">
+                <td colSpan="7" className="empty-table">
                   No NGO applications found.
                 </td>
               </tr>
@@ -296,17 +344,11 @@ function NGOApprovals() {
             aria-modal="true"
             aria-labelledby="reject-modal-title"
           >
-
-            {/* Modal Icon */}
             <div style={modalStyles.icon}>
               <Building2 size={28} />
             </div>
 
-            {/* Modal Heading */}
-            <h2
-              id="reject-modal-title"
-              style={modalStyles.heading}
-            >
+            <h2 id="reject-modal-title" style={modalStyles.heading}>
               Reject NGO Application
             </h2>
 
@@ -314,15 +356,15 @@ function NGOApprovals() {
               You are about to reject the verification application of:
             </p>
 
-            {/* Selected NGO */}
             <div style={modalStyles.ngoInfo}>
               <strong>{selectedNGO.ngo_name}</strong>
               <span>
-                {selectedNGO.city}, {selectedNGO.state}
+                {[selectedNGO.city, selectedNGO.state]
+                  .filter(Boolean)
+                  .join(", ")}
               </span>
             </div>
 
-            {/* Rejection Reason */}
             <label style={modalStyles.label}>
               Reason for rejection <span>*</span>
             </label>
@@ -345,7 +387,6 @@ function NGOApprovals() {
               </div>
             )}
 
-            {/* Modal Buttons */}
             <div style={modalStyles.buttons}>
               <button
                 type="button"
@@ -371,7 +412,6 @@ function NGOApprovals() {
                   : "Confirm Rejection"}
               </button>
             </div>
-
           </div>
         </div>
       )}

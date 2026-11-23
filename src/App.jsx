@@ -7,7 +7,8 @@ import {
   Route,
   Navigate
 } from "react-router-dom";
-
+import NGOVerification from './modules/authentication/NGOVerification';
+import NGOVerificationStatus from './modules/authentication/NGOVerificationStatus';
 // Authentication
 
 import ProtectedRoute from "./modules/authentication/ProtectedRoute";
@@ -64,7 +65,11 @@ function App() {
   <Route path="/donor/my-donations" element={<MyDonations />} />
   <Route path="/ngo-dashboard/*" element={<NgoRoutes />} />
 </Route>
-
+      <Route element={<ProtectedRoute />}>
+  <Route path="/profile" element={<Profile />} />
+  <Route path="/ngo-verification" element={<NGOVerification />} />
+  <Route path="/ngo-verification-status" element={<NGOVerificationStatus />}/>
+</Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>

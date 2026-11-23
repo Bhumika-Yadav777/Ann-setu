@@ -1,4 +1,4 @@
-
+import { MailCheck } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import './Register.css';
@@ -222,7 +222,16 @@ function Register() {
           </div>
 
           {error && <p className="error-message">{error}</p>}
-          {message && <p className="success-message">{message}</p>}
+          {message && (
+  <div className="success-message">
+    <MailCheck size={24} />
+    <div>
+      <strong>Verify Your Email Address!</strong>
+      <p>{message}</p>
+      <p>Please check your inbox and spam folder for the verification link.</p>
+    </div>
+  </div>
+)}
 
           <button className="register-button" type="submit" disabled={loading}>
             {loading ? 'Creating Account...' : 'Create Account →'}

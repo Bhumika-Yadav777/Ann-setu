@@ -1,3 +1,5 @@
+import AdminDashboard from "./modules/admin/pages/AdminDashboard";
+import AdminProtectedRoute from "./modules/authentication/AdminProtectedRoute";
 import { AuthProvider } from './modules/authentication/AuthContext.jsx';
 import {
   BrowserRouter,
@@ -49,36 +51,19 @@ function App() {
 
           {/* Protected routes - login required */}
           <Route element={<ProtectedRoute />}>
+  <Route element={<AdminProtectedRoute />}>
+    <Route
+      path="/admin-dashboard"
+      element={<AdminDashboard />}
+    />
+  </Route>
 
-            {/* Common profile page */}
-            <Route
-              path="/profile"
-              element={<Profile />}
-            />
-
-            {/* Donor module */}
-            <Route
-              path="/donor-dashboard"
-              element={<DonorDashboard />}
-            />
-
-            <Route
-              path="/donor/add-donation"
-              element={<AddDonation />}
-            />
-
-            <Route
-              path="/donor/my-donations"
-              element={<MyDonations />}
-            />
-
-            {/* NGO module */}
-            <Route
-              path="/ngo-dashboard/*"
-              element={<NgoRoutes />}
-            />
-
-          </Route>
+  <Route path="/profile" element={<Profile />} />
+  <Route path="/donor-dashboard" element={<DonorDashboard />} />
+  <Route path="/donor/add-donation" element={<AddDonation />} />
+  <Route path="/donor/my-donations" element={<MyDonations />} />
+  <Route path="/ngo-dashboard/*" element={<NgoRoutes />} />
+</Route>
 
         </Routes>
       </BrowserRouter>

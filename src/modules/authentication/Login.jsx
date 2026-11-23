@@ -48,6 +48,7 @@ function Login() {
     if (profile.role === 'donor') navigate('/donor-dashboard');
     else if (profile.role === 'ngo') navigate('/ngo-dashboard');
     else if (profile.role === 'beneficiary') navigate('/beneficiary-dashboard');
+    else if (profile.role === 'admin') navigate('/admin-dashboard');
     else setError('Invalid user role.');
   };
 

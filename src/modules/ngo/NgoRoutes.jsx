@@ -7,6 +7,7 @@ import NgoDashboard from "./pages/NgoDashboard";
 import AvailableDonations from "./pages/AvailableDonations";
 import DonationDetails from "./pages/DonationDetails";
 import MyRequests from "./pages/MyRequests";
+import DonationMapPage from "./pages/DonationMapPage";
 
 function NgoRoutes() {
   return (
@@ -27,6 +28,11 @@ function NgoRoutes() {
         <Route
           path="requests"
           element={<MyRequests />}
+        />
+
+        <Route
+          path="map"
+          element={<DonationMapPage />}
         />
       </Route>
     </Routes>

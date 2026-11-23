@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Utensils } from 'lucide-react';
 import { useAuth } from '../../authentication/useAuth';
 import { supabase } from '../../../services/supabaseClient';
+import { getCoordinates } from '../../ngo/services/geocodingService';
 import './AddDonation.css';
 
 function AddDonation() {
@@ -46,7 +47,17 @@ function AddDonation() {
       return;
     }
 
-    // Validate image
+    if (!formData.pickup_location.trim()) {
+      setError('Please enter a pickup location.');
+      return;
+    }
+
+    if (Number(formData.quantity) <= 0) {
+      setError('Quantity must be greater than zero.');
+      return;
+    }
+
+    // Validate food image
     if (foodImage) {
       const allowedTypes = [
         'image/jpeg',
@@ -65,24 +76,28 @@ function AddDonation() {
       }
     }
 
-    if (Number(formData.quantity) <= 0) {
-      setError('Quantity must be greater than zero.');
-      return;
-    }
-
     setSubmitting(true);
 
     let uploadedImagePath = null;
 
     try {
+      // 1. Convert pickup address into coordinates
+      const coordinates = await getCoordinates(
+        formData.pickup_location
+      );
+
+      if (!coordinates) {
+        throw new Error(
+          'Location not found. Please enter a more complete pickup address, including city and state.'
+        );
+      }
+
+      // 2. Upload food image to Supabase Storage
       let imageUrl = null;
 
-      // 1. Upload food image to Supabase Storage
       if (foodImage) {
         const fileExtension = foodImage.name.split('.').pop();
-
         const fileName = `${crypto.randomUUID()}.${fileExtension}`;
-
         const filePath = `${user.id}/${fileName}`;
 
         const { data: uploadData, error: uploadError } =
@@ -99,7 +114,7 @@ function AddDonation() {
 
         uploadedImagePath = uploadData.path;
 
-        // 2. Get public image URL
+        // Get public image URL
         const { data: publicUrlData } = supabase.storage
           .from('food-images')
           .getPublicUrl(uploadData.path);
@@ -107,7 +122,7 @@ function AddDonation() {
         imageUrl = publicUrlData.publicUrl;
       }
 
-      // 3. Insert donation into food_donations table
+      // 3. Save donation and coordinates in Supabase
       const { error: insertError } = await supabase
         .from('food_donations')
         .insert({
@@ -120,16 +135,17 @@ function AddDonation() {
           food_image_url: imageUrl,
           pickup_location: formData.pickup_location.trim(),
           packaging_status: formData.packaging_status,
+
+          // Map coordinates
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
         });
 
       if (insertError) {
         throw insertError;
       }
 
-      // 4. Show success message
-      setSuccess('Food donation submitted successfully!');
-
-      // 5. Reset form
+      // 4. Reset form
       setFormData({
         food_name: '',
         category: '',
@@ -138,10 +154,14 @@ function AddDonation() {
         quantity_unit: 'servings',
         pickup_location: '',
         packaging_status: 'not_packed',
-    });
-    setFoodImage(null);
-    formElement.reset();
-    setSuccess('Food donation submitted successfully!');
+      });
+
+      setFoodImage(null);
+      formElement.reset();
+
+      setSuccess(
+        'Food donation submitted successfully! Its location has been saved.'
+      );
 
     } catch (err) {
       console.error('Donation submission error:', err);
@@ -157,7 +177,9 @@ function AddDonation() {
         }
       }
 
-      setError(err.message || 'Unable to submit donation. Please try again.');
+      setError(
+        err.message || 'Unable to submit donation. Please try again.'
+      );
 
     } finally {
       setSubmitting(false);
@@ -269,7 +291,9 @@ function AddDonation() {
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp"
-            onChange={(e) => setFoodImage(e.target.files?.[0] || null)}
+            onChange={(e) =>
+              setFoodImage(e.target.files?.[0] || null)
+            }
           />
           <small>
             Accepted formats: JPG, PNG, WEBP. Maximum size: 5 MB.
@@ -282,10 +306,13 @@ function AddDonation() {
             name="pickup_location"
             value={formData.pickup_location}
             onChange={handleChange}
-            placeholder="Enter complete pickup address"
+            placeholder="Enter complete address, city and state"
             rows="3"
             required
           />
+          <small>
+            Enter a complete address so your donation can appear on the map.
+          </small>
         </label>
 
         <label>
@@ -315,7 +342,7 @@ function AddDonation() {
           className="submit-donation"
           disabled={submitting}
         >
-          {submitting ? 'Submitting...' : 'Submit Donation'}
+          {submitting ? 'Finding Location & Submitting...' : 'Submit Donation'}
         </button>
 
       </form>

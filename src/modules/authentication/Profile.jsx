@@ -192,7 +192,7 @@ function Profile() {
         </button>
 
         <div className="profile-heading">
-          <div>
+          <div className="profile-heading-content">
             <span className="profile-eyebrow">
               <Leaf size={15} />
               YOUR ANN-SETU ACCOUNT
@@ -204,16 +204,9 @@ function Profile() {
               Your details, your contribution, your connection.
             </p>
           </div>
-
-          <div className="profile-heading-icon">
-            <Sprout size={28} />
-          </div>
         </div>
 
         <section className="profile-card">
-
-          {/* Simple green strip without image or text */}
-          <div className="profile-cover"></div>
 
           <div className="profile-intro">
             <div className="profile-avatar">
